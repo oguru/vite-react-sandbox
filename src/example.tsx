@@ -37,7 +37,9 @@ const fetchFormData = (populate: boolean) => {
           phoneNumbers: [
             { number: 5555555555, type: 'mobile' }
           ]
-        }]
+        }],
+        birthDate: '1990-01-01',
+        appointmentTime: '2024-03-20T14:30'
       };
     }
     return null;
@@ -45,12 +47,13 @@ const fetchFormData = (populate: boolean) => {
   
   const schema = yup.object({
     personalInfo: yup.object({
-      name: yup.string().required().label('Full Name'),
-      email: yup.string().email().required().label('Email'),
-      age: yup.number().nullable().transform((value) => {
+      name: yup.string().default('').required().label('Full Name'),
+      email: yup.string().email().default('').required().label('Email'),
+      age: yup.number().transform((value) => {
         return Number.isNaN(value) ? null : value;
-      }).min(18, 'Must be at least 18 years old').required('Age is required').label('Age'),
-      bio: yup.string().max(500).label('Biography'),
+      })
+      .nullable().default(null).label('Age'),
+      bio: yup.string().max(500).default('').label('Biography'),
       preferences: yup.object({
         newsletter: yup.boolean().default(false).label('Subscribe to Newsletter'),
         theme: yup.string().oneOf(['light', 'dark', 'system']).default('system').label('Theme Preference')
@@ -59,44 +62,70 @@ const fetchFormData = (populate: boolean) => {
   
     addresses: yup.array().of(
       yup.object({
-        street: yup.string().required().label('Street'),
-        unit: yup.string().label('Unit/Apt'),
-        city: yup.string().required().label('City'),
-        state: yup.string().required().label('State'),
-        zipCode: yup.string().matches(/^\d{5}(-\d{4})?$/, 'Invalid ZIP code').required().label('ZIP Code'),
-        country: yup.string().required().label('Country'),
+        street: yup.string().default('').required().label('Street'),
+        unit: yup.string().default('').label('Unit/Apt'),
+        city: yup.string().default('').required().label('City'),
+        state: yup.string().default('').required().label('State'),
+        zipCode: yup.string().matches(/^\d{5}(-\d{4})?$/, 'Invalid ZIP code').default('').required().label('ZIP Code'),
+        country: yup.string().default('').required().label('Country'),
         isDefault: yup.boolean().default(false).label('Default Address'),
         type: yup.string().oneOf(['home', 'work', 'other']).default('home').label('Address Type'),
         phoneNumbers: yup.array().of(
           yup.object({
-            number: yup.number().nullable().transform((value) => {
-              return Number.isNaN(value) ? null : value;
-            }).required('Phone number is required').label('Phone Number'),
-            type: yup.string().oneOf(['home', 'work', 'mobile']).default('mobile').label('Type'),
-            primary: yup.boolean().default(false).label('Primary Number')
+            number: yup.number()
+              .transform((value) => {
+                return Number.isNaN(value) ? null : value;
+              })
+              .nullable()
+              .required('Please enter a valid phone number')
+              .typeError('Please enter a valid phone number')
+              .label('Phone Number'),
+            type: yup.string()
+              .oneOf(['home', 'work', 'mobile'])
+              .default('mobile')
+              .label('Type'),
+            primary: yup.boolean()
+              .default(false)
+              .label('Primary Number')
           })
-        ).min(1, 'At least one phone number is required').default([]).label('Phone Numbers'),
-        deliveryInstructions: yup.string().label('Delivery Instructions')
+        ).min(1, 'At least one phone number is required').default([]).required('Phone numbers are required').label('Phone Numbers'),
+        deliveryInstructions: yup.string().default('').label('Delivery Instructions')
       })
-    ).default([]).label('Addresses'),
+    ).min(1, 'At least one address is required').default([]).required('Addresses are required').label('Addresses'),
   
     emergencyContacts: yup.array().of(
       yup.object({
-        name: yup.string().required().label('Contact Name'),
-        relationship: yup.string().required().oneOf([
+        name: yup.string().default('').required().label('Contact Name'),
+        relationship: yup.string().default('').required().oneOf([
           'spouse', 'parent', 'child', 'sibling', 'friend', 'other'
         ]).label('Relationship'),
         phoneNumbers: yup.array().of(
           yup.object({
-            number: yup.number().nullable().transform((value) => {
-              return Number.isNaN(value) ? null : value;
-            }).required('Phone number is required').label('Phone Number'),
+            number: yup.number().nullable().default(null).label('Phone Number'),
             type: yup.string().oneOf(['home', 'work', 'mobile']).default('mobile').label('Type')
           })
         ).min(1, 'At least one phone number is required').default([]).label('Phone Numbers')
       })
-    ).default([]).label('Emergency Contacts')
+    ).min(1, 'At least one contact is required').default([]).label('Emergency Contacts'),
+  
+    birthDate: yup.string()
+      .matches(/^\d{4}-\d{2}-\d{2}$/, 'Birth Date must be in the format YYYY-MM-DD')
+      .nullable()
+      .default(null)
+      .required()
+      .meta({ date: true })
+      .label('Birth Date'),
+  
+    appointmentTime: yup.string()
+      .matches(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Appointment Time must be in the format YYYY-MM-DDTHH:MM')
+      .nullable()
+      .default(null)
+      .required()
+      .meta({ datetime: true })
+      .label('Appointment Time'),
   }).required();
+
+  type Type = yup.InferType<typeof schema>;
   
   export const MyForm = () => {
     const initialValues = fetchFormData(false);

@@ -15,8 +15,17 @@ interface ArrayFieldProps {
 export const ArrayField = ({ name, control, schema, label, errors, register }: ArrayFieldProps) => {
   const { fields, append, remove } = useFieldArray({
     control,
-    name
+    name,
+    shouldUnregister: true
   });
+
+  const handleAppend = () => {
+    append({}, { shouldFocus: false });
+  };
+
+  const handleRemove = (index: number) => {
+    remove(index);
+  };
 
   return (
     <div className="array-field">
@@ -30,12 +39,17 @@ export const ArrayField = ({ name, control, schema, label, errors, register }: A
             errors={errors?.[index] || {}}
             prefix={`${name}.${index}`}
           />
-          <button type="button" onClick={() => remove(index)}>
+          <button type="button" onClick={() => handleRemove(index)}>
             Remove
           </button>
         </div>
       ))}
-      <button type="button" onClick={() => append({})}>
+      {(Array.isArray(errors) ? errors.root?.message : errors?.message) && (
+        <p style={{color: 'red'}} className="text-sm text-red-500">
+          {Array.isArray(errors) ? errors.root?.message : errors?.message}
+        </p>
+      )}
+      <button type="button" onClick={handleAppend}>
         Add {label}
       </button>
     </div>

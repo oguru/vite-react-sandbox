@@ -5,8 +5,6 @@ export const buildDefaultValues = (schema: yup.AnyObjectSchema) => {
   const fields = schema.fields || {};
 
   Object.entries(fields).forEach(([fieldName, fieldSchema]: [string, any]) => {
-    console.log('fieldSchema:', fieldSchema)
-    console.log('fieldName:', fieldName)
     if (fieldSchema instanceof yup.ObjectSchema) {
       defaults[fieldName] = buildDefaultValues(fieldSchema);
     } else if (fieldSchema instanceof yup.ArraySchema) {

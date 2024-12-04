@@ -12,10 +12,15 @@ interface FieldProps {
 }
 
 export const getInputType = (schema: any) => {
-  if (schema instanceof yup.StringSchema) return 'text';
+  if (schema instanceof yup.StringSchema) {
+    const { datetime, date } = schema.spec.meta || {};
+    return datetime ? 'datetime-local' : date ? 'date' : 'text';
+  }
   if (schema instanceof yup.NumberSchema) return 'number';
   if (schema instanceof yup.BooleanSchema) return 'checkbox';
-  if (schema instanceof yup.DateSchema) return 'date';
+  if (schema instanceof yup.DateSchema) {
+    return schema.spec.meta?.datetime ? 'datetime-local' : 'date';
+  }
   return 'text';
 };
 
@@ -46,7 +51,7 @@ export const Field = ({ name, schema, register, label, error }: FieldProps) => {
         {...register(name, registerOptions)}
       />
       {error && (
-        <p className="mt-1 text-sm text-red-500">
+        <p style={{color: 'red'}} className="mt-1 text-sm text-red-500">
           {error}
         </p>
       )}
