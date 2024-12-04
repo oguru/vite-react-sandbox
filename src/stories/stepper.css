@@ -1,0 +1,55 @@
+.stepper {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+}
+
+.stepper-item {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.stepper-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #666;
+}
+
+.stepper-label {
+  margin-left: 8px;
+  color: #666;
+}
+
+.stepper-line {
+  flex: 1;
+  height: 2px;
+  background-color: #e0e0e0;
+  margin: 0 8px;
+}
+
+.stepper-item.active .stepper-circle {
+  background-color: #1ea7fd;
+  color: white;
+}
+
+.stepper-item.active .stepper-label {
+  color: #1ea7fd;
+  font-weight: bold;
+}
+
+.stepper-item.completed .stepper-circle {
+  background-color: #66bf3c;
+  color: white;
+}
+
+.stepper-item.completed .stepper-line {
+  background-color: #66bf3c;
+} 
