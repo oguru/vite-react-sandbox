@@ -1,8 +1,7 @@
 import * as yup from 'yup';
 
-import { createSelectField, getSchemaAndField } from './utils/schemaHelpers';
-
 import Form from './components/Organisms/Form/Form';
+import { getSchemaAndField } from './utils/schemaHelpers';
 
 // Mock function to simulate API call
 const fetchFormData = (populate: boolean) => {

@@ -231,31 +231,3 @@ export const getSchemaAndField = (options: SchemaOptions) => {
 
   return schema;
 };
-
-export const createSelectField = (options: {
-  options: SelectOption[];
-  required?: boolean;
-  fieldLabel?: string;
-  validationLabel?: string;
-  defaultValue?: string;
-}) => {
-  const { options: selectOptions, required = true, fieldLabel, validationLabel, defaultValue } = options;
-  
-  let schema = yup.string()
-    .nullable()
-    .oneOf(
-      selectOptions.map(opt => opt.value),
-      `Please select a valid option`
-    )
-    .meta({ 
-      type: 'select',
-      selectOptions // Store the full options array in meta for the Field component
-    });
-
-  schema = addDefault(schema, defaultValue);
-  schema = addFieldLabel(schema, fieldLabel);
-  schema = addValidationLabel(schema, validationLabel);
-  schema = addRequired(schema, required, validationLabel);
-
-  return schema;
-}; 
