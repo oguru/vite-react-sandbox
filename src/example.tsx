@@ -1,6 +1,7 @@
 import * as yup from 'yup';
 
 import { SchemaForm } from "./components/SchemaForm";
+import { getSchemaAndField } from './utils/schemaHelpers';
 
 // Mock function to simulate API call
 const fetchFormData = (populate: boolean) => {
@@ -47,82 +48,157 @@ const fetchFormData = (populate: boolean) => {
   
   const schema = yup.object({
     personalInfo: yup.object({
-      name: yup.string().default('').required().label('Full Name'),
-      email: yup.string().email().default('').required().label('Email'),
-      age: yup.number().transform((value) => {
-        return Number.isNaN(value) ? null : value;
-      })
-      .nullable().default(null).label('Age'),
-      bio: yup.string().max(500).default('').label('Biography'),
+      name: getSchemaAndField({
+        type: 'string',
+        required: true,
+        fieldLabel: 'Full Name'
+      }),
+      email: getSchemaAndField({
+        type: 'string',
+        required: true,
+        fieldLabel: 'Email'
+      }).email(),
+      age: getSchemaAndField({
+        type: 'number',
+        required: false,
+        fieldLabel: 'Age'
+      }),
+      bio: getSchemaAndField({
+        type: 'string',
+        required: false,
+        fieldLabel: 'Biography'
+      }).max(500),
       preferences: yup.object({
-        newsletter: yup.boolean().default(false).label('Subscribe to Newsletter'),
-        theme: yup.string().oneOf(['light', 'dark', 'system']).default('system').label('Theme Preference')
+        newsletter: getSchemaAndField({
+          type: 'boolean',
+          required: false,
+          fieldLabel: 'Subscribe to Newsletter',
+          defaultValue: false
+        }),
+        theme: getSchemaAndField({
+          type: 'string',
+          required: false,
+          fieldLabel: 'Theme Preference',
+          defaultValue: 'system'
+        }).oneOf(['light', 'dark', 'system'])
       }).label('Preferences')
     }).label('Personal Information'),
   
     addresses: yup.array().of(
       yup.object({
-        street: yup.string().default('').required().label('Street'),
-        unit: yup.string().default('').label('Unit/Apt'),
-        city: yup.string().default('').required().label('City'),
-        state: yup.string().default('').required().label('State'),
-        zipCode: yup.string().matches(/^\d{5}(-\d{4})?$/, 'Invalid ZIP code').default('').required().label('ZIP Code'),
-        country: yup.string().default('').required().label('Country'),
-        isDefault: yup.boolean().default(false).label('Default Address'),
-        type: yup.string().oneOf(['home', 'work', 'other']).default('home').label('Address Type'),
+        street: getSchemaAndField({
+          type: 'string',
+          required: true,
+          fieldLabel: 'Street'
+        }),
+        unit: getSchemaAndField({
+          type: 'string',
+          required: false,
+          fieldLabel: 'Unit/Apt'
+        }),
+        city: getSchemaAndField({
+          type: 'string',
+          required: true,
+          fieldLabel: 'City'
+        }),
+        state: getSchemaAndField({
+          type: 'string',
+          required: true,
+          fieldLabel: 'State'
+        }),
+        zipCode: getSchemaAndField({
+          type: 'string',
+          required: true,
+          fieldLabel: 'ZIP Code'
+        }).matches(/^\d{5}(-\d{4})?$/, 'Invalid ZIP code'),
+        country: getSchemaAndField({
+          type: 'string',
+          required: true,
+          fieldLabel: 'Country'
+        }),
+        isDefault: getSchemaAndField({
+          type: 'boolean',
+          required: false,
+          fieldLabel: 'Default Address',
+          defaultValue: false
+        }),
+        type: getSchemaAndField({
+          type: 'string',
+          required: false,
+          fieldLabel: 'Address Type',
+          defaultValue: 'home'
+        }).oneOf(['home', 'work', 'other']),
         phoneNumbers: yup.array().of(
           yup.object({
-            number: yup.number()
-              .transform((value) => {
-                return Number.isNaN(value) ? null : value;
-              })
-              .nullable()
-              .required('Please enter a valid phone number')
-              .typeError('Please enter a valid phone number')
-              .label('Phone Number'),
-            type: yup.string()
-              .oneOf(['home', 'work', 'mobile'])
-              .default('mobile')
-              .label('Type'),
-            primary: yup.boolean()
-              .default(false)
-              .label('Primary Number')
+            number: getSchemaAndField({
+              type: 'number',
+              required: true,
+              fieldLabel: 'Phone Number'
+            }),
+            type: getSchemaAndField({
+              type: 'string',
+              required: false,
+              fieldLabel: 'Type',
+              defaultValue: 'mobile'
+            }).oneOf(['home', 'work', 'mobile']),
+            primary: getSchemaAndField({
+              type: 'boolean',
+              required: false,
+              fieldLabel: 'Primary Number',
+              defaultValue: false
+            })
           })
         ).min(1, 'At least one phone number is required').default([]).required('Phone numbers are required').label('Phone Numbers'),
-        deliveryInstructions: yup.string().default('').label('Delivery Instructions')
+        deliveryInstructions: getSchemaAndField({
+          type: 'string',
+          required: false,
+          fieldLabel: 'Delivery Instructions'
+        })
       })
     ).min(1, 'At least one address is required').default([]).required('Addresses are required').label('Addresses'),
   
     emergencyContacts: yup.array().of(
       yup.object({
-        name: yup.string().default('').required().label('Contact Name'),
-        relationship: yup.string().default('').required().oneOf([
-          'spouse', 'parent', 'child', 'sibling', 'friend', 'other'
-        ]).label('Relationship'),
+        name: getSchemaAndField({
+          type: 'string',
+          required: true,
+          fieldLabel: 'Contact Name'
+        }),
+        relationship: getSchemaAndField({
+          type: 'string',
+          required: true,
+          fieldLabel: 'Relationship',
+          defaultValue: ''
+        }).oneOf(['spouse', 'parent', 'child', 'sibling', 'friend', 'other']),
         phoneNumbers: yup.array().of(
           yup.object({
-            number: yup.number().nullable().default(null).label('Phone Number'),
-            type: yup.string().oneOf(['home', 'work', 'mobile']).default('mobile').label('Type')
+            number: getSchemaAndField({
+              type: 'number',
+              required: false,
+              fieldLabel: 'Phone Number'
+            }),
+            type: getSchemaAndField({
+              type: 'string',
+              required: false,
+              fieldLabel: 'Type',
+              defaultValue: 'mobile'
+            }).oneOf(['home', 'work', 'mobile'])
           })
         ).min(1, 'At least one phone number is required').default([]).label('Phone Numbers')
       })
     ).min(1, 'At least one contact is required').default([]).label('Emergency Contacts'),
   
-    birthDate: yup.string()
-      .matches(/^\d{4}-\d{2}-\d{2}$/, 'Birth Date must be in the format YYYY-MM-DD')
-      .nullable()
-      .default(null)
-      .required()
-      .meta({ date: true })
-      .label('Birth Date'),
+    birthDate: getSchemaAndField({
+      type: 'date',
+      required: true,
+      fieldLabel: 'Birth Date'
+    }),
   
-    appointmentTime: yup.string()
-      .matches(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Appointment Time must be in the format YYYY-MM-DDTHH:MM')
-      .nullable()
-      .default(null)
-      .required()
-      .meta({ datetime: true })
-      .label('Appointment Time'),
+    appointmentTime: getSchemaAndField({
+      type: 'datetime',
+      required: true,
+      fieldLabel: 'Appointment Time'
+    })
   }).required();
 
   type Type = yup.InferType<typeof schema>;

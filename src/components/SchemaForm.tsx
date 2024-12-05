@@ -42,7 +42,7 @@ export const SchemaForm = ({ schema, onSubmit, initialValues }: SchemaFormProps)
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)}>
+    <form noValidate onSubmit={handleSubmit(handleFormSubmit)}>
       <FormFields
         schema={schema}
         register={register}
