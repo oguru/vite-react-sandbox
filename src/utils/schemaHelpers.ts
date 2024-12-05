@@ -30,20 +30,22 @@ export const DISPLAY_DATE_TIME_SECONDS_FORMAT = 'dd/MM/yyyy HH:mm:ss';
 export const DISPLAY_TIME_FORMAT = 'HH:mm';
 export const DISPLAY_TIME_SECONDS_FORMAT = 'HH:mm:ss';
 
-type SelectOption = {
+export interface FieldOption {
   value: string;
   label: string;
-};
+}
 
 type SchemaOptions = {
-  type: 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'datetime-seconds' | 'select';
-  defaultValue?: any;
+  type: 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'datetime-seconds' | 'time' | 'time-seconds' | 'textarea' | 'password' | 'email' | 'url' | 'radio' | 'select';
+  required?: boolean;
   fieldLabel?: string;
   validationLabel?: string;
-  required?: boolean;
-  min?: string | number;
-  max?: string | number;
-  selectOptions?: Array<{ value: string; label: string }>;
+  defaultValue?: any;
+  showIf?: [string, any];
+  rows?: number; // For textarea
+  options?: FieldOption[]; // For both radio and select
+  min?: number;
+  max?: number;
 };
 
 // Define more specific return types for each schema type
@@ -138,30 +140,60 @@ const getInputFormat = (type: string): string => {
   }
 };
 
-export const getSchemaAndField = (options: SchemaOptions): SchemaType => {
+export const getSchemaAndField = (options: SchemaOptions) => {
   const { 
-    type,
-    defaultValue, 
+    type, 
+    required = true, 
     fieldLabel, 
     validationLabel, 
-    required = true,
-    min, 
-    max,
-    selectOptions 
+    defaultValue, 
+    showIf,
+    rows,
+    options: fieldOptions,
+    min,
+    max
   } = options;
-  
-  let schema: SchemaType;
+
+  let schema: any;
 
   switch (type) {
-    case 'string': {
-      schema = yup.string().nullable() as StringSchema;
+    case 'string':
+      schema = yup.string();
       break;
-    }
+    case 'textarea':
+      schema = yup.string().meta({ type: 'textarea' });
+      if (rows) {
+        schema = schema.meta({ ...schema.spec?.meta, rows });
+      }
+      break;
+    case 'password':
+      schema = yup.string().meta({ type: 'password' });
+      break;
+    case 'url':
+      schema = yup.string().url('Please enter a valid URL').meta({ type: 'url' });
+      break;
+    case 'email':
+      schema = yup.string()
+        .email('Please enter a valid email address')
+        .meta({ type: 'email' });
+      break;
+    case 'radio':
+    case 'select':
+      if (!fieldOptions?.length) {
+        throw new Error(`options are required for ${type} fields`);
+      }
+      schema = yup.string()
+        .oneOf(
+          fieldOptions.map(opt => opt.value),
+          'Please select a valid option'
+        )
+        .meta({ 
+          type,
+          options: fieldOptions // Store the full options array in meta for the Field component
+        });
+      break;
     case 'number': {
       let numberSchema = yup.number().nullable();
-      numberSchema = numberSchema.transform((value) => {
-        return Number.isNaN(value) ? null : value;
-      });
       
       if (typeof min === 'number') {
         numberSchema = numberSchema.min(min);
@@ -169,45 +201,33 @@ export const getSchemaAndField = (options: SchemaOptions): SchemaType => {
       if (typeof max === 'number') {
         numberSchema = numberSchema.max(max);
       }
-      schema = numberSchema as NumberSchema;
+      schema = numberSchema;
       break;
     }
     case 'boolean': {
-      schema = yup.boolean().nullable() as BooleanSchema;
-      break;
-    }
-    case 'select': {
-      if (!selectOptions?.length) {
-        throw new Error('selectOptions are required for select fields');
-      }
-      schema = yup.string()
-        .nullable()
-        .oneOf(
-          selectOptions.map(opt => opt.value),
-          'Please select a valid option'
-        )
-        .meta({ 
-          type: 'select',
-          selectOptions 
-        }) as StringSchema;
+      schema = yup.boolean();
       break;
     }
     case 'date':
     case 'datetime':
-    case 'datetime-seconds': {
-      let dateSchema = yup.string().nullable();
-      dateSchema = dateSchema.meta({ type });
-      schema = addDateValidation(dateSchema as StringSchema, type, min as string, max as string);
+    case 'datetime-seconds':
+    case 'time':
+    case 'time-seconds': {
+      schema = yup.string().meta({ type });
       break;
     }
     default:
-      throw new Error(`Unsupported type: ${type}`);
+      throw new Error(`Unsupported field type: ${type}`);
   }
 
   schema = addDefault(schema, defaultValue);
   schema = addFieldLabel(schema, fieldLabel);
   schema = addValidationLabel(schema, validationLabel);
   schema = addRequired(schema, required, validationLabel);
+  
+  if (showIf) {
+    schema = schema.meta({ ...schema.spec?.meta, showIf });
+  }
 
   return schema;
 };

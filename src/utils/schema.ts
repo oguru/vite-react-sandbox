@@ -10,14 +10,18 @@ export const buildDefaultValues = (schema: yup.AnyObjectSchema) => {
     } else if (fieldSchema instanceof yup.ArraySchema) {
       defaults[fieldName] = [];
     } else {
-      defaults[fieldName] = fieldSchema.spec.default ?? getTypeDefault(fieldSchema);
+      defaults[fieldName] = getTypeDefault(fieldSchema);
     }
   });
 
   return defaults;
 };
 
-const getTypeDefault = (schema: any) => {
+export const getTypeDefault = (schema: any) => {
+  if (schema.spec.default !== undefined) {
+    return schema.spec.default;
+  }
+
   if (schema instanceof yup.StringSchema) return '';
   if (schema instanceof yup.NumberSchema) return null;
   if (schema instanceof yup.BooleanSchema) return false;

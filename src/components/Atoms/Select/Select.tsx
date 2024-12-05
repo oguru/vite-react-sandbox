@@ -1,12 +1,8 @@
+import { FieldOption } from '../../../utils/schemaHelpers';
 import React from 'react';
 
-export interface SelectOption {
-  value: string;
-  label: string;
-}
-
 interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'value'> {
-  options: SelectOption[];
+  options: FieldOption[];
   value?: string;
   placeholder?: string;
   hasError?: boolean;

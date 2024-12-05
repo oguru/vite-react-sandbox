@@ -1,7 +1,9 @@
+import { Radio, RadioOption } from '../Radio/Radio';
 import React, { useId } from 'react';
 import { Select, SelectOption } from '../Select/Select';
 
 import { Input } from '../Input/Input';
+import { Textarea } from '../Textarea/Textarea';
 
 type BaseFieldProps = {
   label?: string;
@@ -10,8 +12,13 @@ type BaseFieldProps = {
 };
 
 type InputFieldProps = BaseFieldProps & {
-  type: 'text' | 'number' | 'date' | 'datetime-local' | 'time' | 'checkbox';
+  type: 'text' | 'number' | 'date' | 'datetime-local' | 'time' | 'checkbox' | 'password' | 'email' | 'url';
   inputProps: Omit<React.ComponentProps<typeof Input>, 'type' | 'hasError'>;
+};
+
+type TextareaFieldProps = BaseFieldProps & {
+  type: 'textarea';
+  inputProps: Omit<React.ComponentProps<typeof Textarea>, 'hasError'>;
 };
 
 type SelectFieldProps = BaseFieldProps & {
@@ -19,7 +26,12 @@ type SelectFieldProps = BaseFieldProps & {
   inputProps: Omit<React.ComponentProps<typeof Select>, 'hasError'>;
 };
 
-type FormFieldProps = InputFieldProps | SelectFieldProps;
+type RadioFieldProps = BaseFieldProps & {
+  type: 'radio';
+  inputProps: Omit<React.ComponentProps<typeof Radio>, 'hasError'>;
+};
+
+type FormFieldProps = InputFieldProps | SelectFieldProps | TextareaFieldProps | RadioFieldProps;
 
 export const FormField = ({
   label,
@@ -42,12 +54,37 @@ export const FormField = ({
       );
     }
 
+    if (type === 'textarea') {
+      return (
+        <Textarea
+          id={id}
+          hasError={!!error}
+          {...(inputProps as React.ComponentProps<typeof Textarea>)}
+        />
+      );
+    }
+
+    if (type === 'radio') {
+      return (
+        <Radio
+          id={id}
+          hasError={!!error}
+          {...(inputProps as React.ComponentProps<typeof Radio>)}
+        />
+      );
+    }
+
+    const sanitizedInputProps = {
+      ...inputProps,
+      value: inputProps.value === null ? '' : inputProps.value
+    } as React.ComponentProps<typeof Input>;
+
     return (
       <Input
         id={id}
         type={type}
         hasError={!!error}
-        {...(inputProps as React.ComponentProps<typeof Input>)}
+        {...sanitizedInputProps}
       />
     );
   };
