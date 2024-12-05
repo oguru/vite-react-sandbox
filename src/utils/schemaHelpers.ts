@@ -30,18 +30,21 @@ export const DISPLAY_DATE_TIME_SECONDS_FORMAT = 'dd/MM/yyyy HH:mm:ss';
 export const DISPLAY_TIME_FORMAT = 'HH:mm';
 export const DISPLAY_TIME_SECONDS_FORMAT = 'HH:mm:ss';
 
+type SelectOption = {
+  value: string;
+  label: string;
+};
+
 type SchemaOptions = {
-  type: 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'datetime-seconds';
+  type: 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'datetime-seconds' | 'select';
   defaultValue?: any;
   fieldLabel?: string;
   validationLabel?: string;
   required?: boolean;
   min?: string | number;
   max?: string | number;
+  selectOptions?: Array<{ value: string; label: string }>;
 };
-
-const getDateErrorMessage = (format: string): string => 
-  `Must be in the format ${format}`;
 
 // Define more specific return types for each schema type
 type StringSchema = yup.StringSchema<string | null>;
@@ -143,7 +146,8 @@ export const getSchemaAndField = (options: SchemaOptions): SchemaType => {
     validationLabel, 
     required = true,
     min, 
-    max 
+    max,
+    selectOptions 
   } = options;
   
   let schema: SchemaType;
@@ -155,8 +159,9 @@ export const getSchemaAndField = (options: SchemaOptions): SchemaType => {
     }
     case 'number': {
       let numberSchema = yup.number().nullable();
-      numberSchema = numberSchema.transform((value) => 
-        (value === null || Number.isNaN(value) ? null : value));
+      numberSchema = numberSchema.transform((value) => {
+        return Number.isNaN(value) ? null : value;
+      });
       
       if (typeof min === 'number') {
         numberSchema = numberSchema.min(min);
@@ -171,17 +176,61 @@ export const getSchemaAndField = (options: SchemaOptions): SchemaType => {
       schema = yup.boolean().nullable() as BooleanSchema;
       break;
     }
+    case 'select': {
+      if (!selectOptions?.length) {
+        throw new Error('selectOptions are required for select fields');
+      }
+      schema = yup.string()
+        .nullable()
+        .oneOf(
+          selectOptions.map(opt => opt.value),
+          'Please select a valid option'
+        )
+        .meta({ 
+          type: 'select',
+          selectOptions 
+        }) as StringSchema;
+      break;
+    }
     case 'date':
     case 'datetime':
     case 'datetime-seconds': {
       let dateSchema = yup.string().nullable();
       dateSchema = dateSchema.meta({ type });
-      schema = addDateValidation(dateSchema, type, min as string, max as string);
+      schema = addDateValidation(dateSchema as StringSchema, type, min as string, max as string);
       break;
     }
     default:
       throw new Error(`Unsupported type: ${type}`);
   }
+
+  schema = addDefault(schema, defaultValue);
+  schema = addFieldLabel(schema, fieldLabel);
+  schema = addValidationLabel(schema, validationLabel);
+  schema = addRequired(schema, required, validationLabel);
+
+  return schema;
+};
+
+export const createSelectField = (options: {
+  options: SelectOption[];
+  required?: boolean;
+  fieldLabel?: string;
+  validationLabel?: string;
+  defaultValue?: string;
+}) => {
+  const { options: selectOptions, required = true, fieldLabel, validationLabel, defaultValue } = options;
+  
+  let schema = yup.string()
+    .nullable()
+    .oneOf(
+      selectOptions.map(opt => opt.value),
+      `Please select a valid option`
+    )
+    .meta({ 
+      type: 'select',
+      selectOptions // Store the full options array in meta for the Field component
+    });
 
   schema = addDefault(schema, defaultValue);
   schema = addFieldLabel(schema, fieldLabel);

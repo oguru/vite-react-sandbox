@@ -1,18 +1,18 @@
 import * as yup from 'yup';
 
 import { FormFields } from './FormFields';
-import { buildDefaultValues } from '../utils/schema';
+import { buildDefaultValues } from '../../../utils/schema';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-interface SchemaFormProps {
+interface FormProps {
   schema: yup.AnyObjectSchema;
   onSubmit: (data: any) => void;
   initialValues?: any;
 }
 
-export const SchemaForm = ({ schema, onSubmit, initialValues }: SchemaFormProps) => {
+export const Form = ({ schema, onSubmit, initialValues }: FormProps) => {
   const defaultValues = buildDefaultValues(schema);
   
   const {
@@ -53,3 +53,5 @@ export const SchemaForm = ({ schema, onSubmit, initialValues }: SchemaFormProps)
     </form>
   );
 }; 
+
+export default Form;

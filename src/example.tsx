@@ -1,7 +1,8 @@
 import * as yup from 'yup';
 
-import { SchemaForm } from "./components/SchemaForm";
-import { getSchemaAndField } from './utils/schemaHelpers';
+import { createSelectField, getSchemaAndField } from './utils/schemaHelpers';
+
+import Form from './components/Organisms/Form/Form';
 
 // Mock function to simulate API call
 const fetchFormData = (populate: boolean) => {
@@ -75,12 +76,16 @@ const fetchFormData = (populate: boolean) => {
           fieldLabel: 'Subscribe to Newsletter',
           defaultValue: false
         }),
-        theme: getSchemaAndField({
-          type: 'string',
-          required: false,
+        theme: createSelectField({
+          options: [
+            { value: 'light', label: 'Light Theme' },
+            { value: 'dark', label: 'Dark Theme' },
+            { value: 'system', label: 'System Default' }
+          ],
           fieldLabel: 'Theme Preference',
-          defaultValue: 'system'
-        }).oneOf(['light', 'dark', 'system'])
+          defaultValue: 'system',
+          required: false
+        })
       }).label('Preferences')
     }).label('Personal Information'),
   
@@ -202,6 +207,7 @@ const fetchFormData = (populate: boolean) => {
   }).required();
 
   type Type = yup.InferType<typeof schema>;
+  console.log('schema:', schema)
   
   export const MyForm = () => {
     const initialValues = fetchFormData(false);
@@ -218,7 +224,7 @@ const fetchFormData = (populate: boolean) => {
               <h1 className="text-2xl font-semibold text-gray-900 mb-6">
                 User Profile Form
               </h1>
-              <SchemaForm
+              <Form
                 schema={schema}
                 onSubmit={handleSubmit}
                 initialValues={initialValues}

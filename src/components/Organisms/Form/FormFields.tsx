@@ -16,12 +16,16 @@ interface FormFieldsProps {
 
 export const FormFields = ({ schema, register, control, errors, prefix = '' }: FormFieldsProps) => {
   const fields = schema.fields || {};
+
+  console.log("FormFields render")
   
   return (
     <>
       {Object.entries(fields).map(([fieldName, fieldSchema]: [string, any]) => {
         const fullPath = prefix ? `${prefix}.${fieldName}` : fieldName;
-        const label = fieldSchema.spec.label || fieldName;
+        const label = fieldSchema.spec?.meta?.label || 
+        fieldSchema.spec?.label || 
+        fieldName;
         const error = errors[fieldName]?.message;
 
         if (fieldSchema instanceof yup.ObjectSchema) {
@@ -43,8 +47,8 @@ export const FormFields = ({ schema, register, control, errors, prefix = '' }: F
           return (
             <ArrayField
               key={fieldName}
-            register={register}
-            name={fullPath}
+              register={register}
+              name={fullPath}
               control={control}
               schema={fieldSchema.innerType}
               label={label}
@@ -58,7 +62,7 @@ export const FormFields = ({ schema, register, control, errors, prefix = '' }: F
             key={fieldName}
             name={fullPath}
             schema={fieldSchema}
-            register={register}
+            control={control}
             label={label}
             error={error}
           />
