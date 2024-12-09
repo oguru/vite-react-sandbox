@@ -44,7 +44,7 @@ export const FormField = ({
   id
 }: BaseFieldProps) => {
   let Component: React.ForwardRefExoticComponent<any> = Input;
-  const additionalProps = {hasError, id};
+  const additionalProps = { hasError, id };
 
   if (schema.spec?.meta?.type) {
     switch (schema.spec?.meta?.type) {
@@ -64,17 +64,12 @@ export const FormField = ({
         break;
     }
   } else if (schema instanceof yup.StringSchema) {
-    additionalProps.type = "text"
+    additionalProps.type = "text";
   } else if (schema instanceof yup.NumberSchema) {
-    additionalProps.type = "number"
+    additionalProps.type = "number";
   } else if (schema instanceof yup.BooleanSchema) {
-    additionalProps.type = "checkbox"
+    additionalProps.type = "checkbox";
   }
-  
-  // const sanitizedfieldProps = {
-  //   ...fieldProps,
-  //   value: fieldProps.value === null ? '' : fieldProps.value
-  // } as React.ComponentProps<typeof Input>;
 
   return <Component 
     {...fieldProps} 
@@ -82,29 +77,4 @@ export const FormField = ({
     {...additionalProps} 
     value={fieldProps.value === null ? '' : fieldProps.value} 
   />;
-
-/* 
-    return (
-      <Input
-        id={id}
-        type={type}
-        hasError={!!error}
-        {...sanitizedInputProps}
-      />
-    ); */
-  // };
-
-  // return (
-  //   <div className="mb-4 flex flex-col">
-  //     {label && (
-  //       <label htmlFor={id} className="block text-sm font-medium mb-1">
-  //         {label}
-  //       </label>
-  //     )}
-  //     {renderInput()}
-  //     {error && (
-  //       <p className="mt-1 text-sm text-red-500">{error}</p>
-  //     )}
-  //   </div>
-  // );
-}; 
+} 

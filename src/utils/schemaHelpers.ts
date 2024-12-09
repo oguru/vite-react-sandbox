@@ -15,7 +15,10 @@ export interface FieldOption {
 }
 
 type SchemaOptions = {
-  type: 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'datetime-seconds' | 'time' | 'time-seconds' | 'textarea' | 'password' | 'email' | 'url' | 'radio' | 'select' | 'range';
+  type: 'text' | 'number' | 'password' | 'email' | 'url' | 'tel' | 'search' | 
+        'date' | 'datetime-local' | 'time' | 'month' | 'week' | 'color' |
+        'checkbox' | 'radio' | 'range' | 'file' |
+        'textarea' | 'select'; // Non-HTML input types for special components
   required?: boolean;
   fieldLabel?: string;
   validationLabel?: string;
@@ -100,7 +103,7 @@ const addDateValidation = (schema: StringSchema, type: string, min?: string, max
   return validatedSchema;
 };
 
-export const getSchemaAndField = (options: SchemaOptions) => {
+export const getFieldSchema = (options: SchemaOptions) => {
   const { 
     type, 
     required = true, 
@@ -117,8 +120,15 @@ export const getSchemaAndField = (options: SchemaOptions) => {
   let schema: any;
 
   switch (type) {
-    case 'string':
-      schema = yup.string();
+    case 'text':
+    // case 'password':
+    // case 'email':
+    // case 'url':
+    case 'tel':
+    case 'search':
+    case 'color':
+    case 'file':
+      schema = yup.string().meta({ type });
       break;
     case 'textarea':
       schema = yup.string().meta({ type: 'textarea' });
@@ -149,11 +159,12 @@ export const getSchemaAndField = (options: SchemaOptions) => {
         )
         .meta({ 
           type,
-          options: fieldOptions // Store the full options array in meta for the Field component
+          options: fieldOptions
         });
       break;
-    case 'number': {
-      let numberSchema = yup.number().nullable();
+    case 'number':
+    case 'range': {
+      let numberSchema = yup.number().nullable().meta({ type });
       
       if (typeof min === 'number') {
         numberSchema = numberSchema.min(min);
@@ -161,18 +172,26 @@ export const getSchemaAndField = (options: SchemaOptions) => {
       if (typeof max === 'number') {
         numberSchema = numberSchema.max(max);
       }
+      if (type === 'range') {
+        numberSchema = numberSchema.meta({ 
+          ...numberSchema.spec?.meta,
+          step: step,
+          min: min ?? 0,
+          max: max ?? 100
+        });
+      }
       schema = numberSchema;
       break;
     }
-    case 'boolean': {
-      schema = yup.boolean();
+    case 'checkbox': {
+      schema = yup.boolean().meta({ type });
       break;
     }
     case 'date':
-    case 'datetime':
-    case 'datetime-seconds':
+    case 'datetime-local':
     case 'time':
-    case 'time-seconds': {
+    case 'month':
+    case 'week': {
       schema = yup.string().meta({ type, min, max: max || MAX_DATE });
       schema = addDateValidation(
         schema, 
@@ -182,21 +201,6 @@ export const getSchemaAndField = (options: SchemaOptions) => {
       );
       break;
     }
-    case 'range':
-      let rangeSchema = yup.number().meta({ 
-        type: 'range',
-        step: step,
-        min: min ?? 0,
-        max: max ?? 100
-      });
-      if (typeof min === 'number') {
-        rangeSchema = rangeSchema.min(min);
-      }
-      if (typeof max === 'number') {
-        rangeSchema = rangeSchema.max(max);
-      }
-      schema = rangeSchema;
-      break;
     default:
       throw new Error(`Unsupported field type: ${type}`);
   }

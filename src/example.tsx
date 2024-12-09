@@ -1,7 +1,7 @@
 import * as yup from 'yup';
 
 import Form from './components/Organisms/Form/Form';
-import { getSchemaAndField } from './utils/schemaHelpers';
+import { getFieldSchema } from './utils/schemaHelpers';
 
 // Mock function to simulate API call
 const fetchFormData = (populate: boolean) => {
@@ -23,28 +23,28 @@ const fetchFormData = (populate: boolean) => {
   };
   
   const schema = yup.object({
-    textField: getSchemaAndField({
-      type: 'string',
+    textField: getFieldSchema({
+      type: 'text',
       required: true,
       fieldLabel: 'Text Field'
     }),
-    numberField: getSchemaAndField({
+    numberField: getFieldSchema({
       type: 'number',
       required: true,
       fieldLabel: 'Number Field'
     }),
-    booleanField: getSchemaAndField({
-      type: 'boolean',
+    booleanField: getFieldSchema({
+      type: 'checkbox',
       required: true,
       fieldLabel: 'Boolean Field'
     }),
-    dateField: getSchemaAndField({
-      type: 'date',
+    dateField: getFieldSchema({
+      type: 'datetime-local',
       required: true,
       fieldLabel: 'Date Field',
-      max: '2024-12-10'
+      // max: '2024-12-10'
     }),
-    selectField: getSchemaAndField({
+    selectField: getFieldSchema({
       options: [
         { value: 'option1', label: 'Option 1' },
         { value: 'option2', label: 'Option 2' }
@@ -53,7 +53,7 @@ const fetchFormData = (populate: boolean) => {
       required: true,
       type: 'select'
     }),
-    salary: getSchemaAndField({
+    salary: getFieldSchema({
       type: 'range',
       required: true,
       fieldLabel: 'Salary',
@@ -64,8 +64,8 @@ const fetchFormData = (populate: boolean) => {
     }),
     items: yup.array().of(
       yup.object({
-        name: getSchemaAndField({
-          type: 'string',
+        name: getFieldSchema({
+          type: 'text',
           required: true,
           fieldLabel: 'Item Name'
         }),
@@ -80,7 +80,7 @@ const fetchFormData = (populate: boolean) => {
   console.log('schema:', schema)
   
   export const MyForm = () => {
-    const initialValues = fetchFormData(true);
+    const initialValues = fetchFormData();
   
     const handleSubmit = (data: FormType) => {
       console.log('Form submitted:', data);
