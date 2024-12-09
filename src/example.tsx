@@ -12,6 +12,7 @@ const fetchFormData = (populate: boolean) => {
         booleanField: true,
         dateField: '2023-10-10',
         selectField: 'option1',
+        salary: 4000,
         items: [{
           name: 'First Item',
           tags: ['tag1', 'tag2']
@@ -40,7 +41,8 @@ const fetchFormData = (populate: boolean) => {
     dateField: getSchemaAndField({
       type: 'date',
       required: true,
-      fieldLabel: 'Date Field'
+      fieldLabel: 'Date Field',
+      max: '2024-12-10'
     }),
     selectField: getSchemaAndField({
       options: [
@@ -50,6 +52,15 @@ const fetchFormData = (populate: boolean) => {
       fieldLabel: 'Select Field',
       required: true,
       type: 'select'
+    }),
+    salary: getSchemaAndField({
+      type: 'range',
+      required: true,
+      fieldLabel: 'Salary',
+      defaultValue: 50000,
+      min: 10000,
+      max: 100000,
+      step: 1000,
     }),
     items: yup.array().of(
       yup.object({

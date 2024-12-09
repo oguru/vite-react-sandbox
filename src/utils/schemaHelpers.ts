@@ -7,28 +7,7 @@ export const DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm";
 export const DATE_TIME_FORMAT_SECONDS = "yyyy-MM-dd'T'HH:mm:ss";
 export const TIME_FORMAT = 'HH:mm';
 export const TIME_FORMAT_SECONDS = 'HH:mm:ss';
-
-export enum DateFieldType {
-  DATE = 'date',
-  DATE_TIME = 'datetime',
-  DATE_TIME_SECONDS = 'datetime-seconds',
-  TIME = 'time',
-  TIME_SECONDS = 'time-seconds'
-}
-
-// Input/validation formats (what HTML inputs return)
-export const INPUT_DATE_FORMAT = 'yyyy-MM-dd';
-export const INPUT_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm";
-export const INPUT_DATE_TIME_SECONDS_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
-export const INPUT_TIME_FORMAT = 'HH:mm';
-export const INPUT_TIME_SECONDS_FORMAT = 'HH:mm:ss';
-
-// Example display formats (can be customized)
-export const DISPLAY_DATE_FORMAT = 'dd/MM/yyyy';
-export const DISPLAY_DATE_TIME_FORMAT = 'dd/MM/yyyy HH:mm';
-export const DISPLAY_DATE_TIME_SECONDS_FORMAT = 'dd/MM/yyyy HH:mm:ss';
-export const DISPLAY_TIME_FORMAT = 'HH:mm';
-export const DISPLAY_TIME_SECONDS_FORMAT = 'HH:mm:ss';
+const MAX_DATE = '9999-12-31';
 
 export interface FieldOption {
   value: string;
@@ -36,19 +15,18 @@ export interface FieldOption {
 }
 
 type SchemaOptions = {
-  type: 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'datetime-seconds' | 'time' | 'time-seconds' | 'textarea' | 'password' | 'email' | 'url' | 'radio' | 'select';
+  type: 'string' | 'number' | 'boolean' | 'date' | 'datetime' | 'datetime-seconds' | 'time' | 'time-seconds' | 'textarea' | 'password' | 'email' | 'url' | 'radio' | 'select' | 'range';
   required?: boolean;
   fieldLabel?: string;
   validationLabel?: string;
   defaultValue?: any;
-  showIf?: [string, any];
   rows?: number; // For textarea
-  options?: FieldOption[]; // For both radio and select
-  min?: number;
-  max?: number;
+  options?: FieldOption[]; // For radio and select
+  min?: number | string;
+  max?: number | string;
+  step?: number;
 };
 
-// Define more specific return types for each schema type
 type StringSchema = yup.StringSchema<string | null>;
 type NumberSchema = yup.NumberSchema<number | null>;
 type BooleanSchema = yup.BooleanSchema<boolean | null>;
@@ -122,24 +100,6 @@ const addDateValidation = (schema: StringSchema, type: string, min?: string, max
   return validatedSchema;
 };
 
-// Get the input format based on type
-const getInputFormat = (type: string): string => {
-  switch (type) {
-    case 'date':
-      return INPUT_DATE_FORMAT;
-    case 'datetime':
-      return INPUT_DATE_TIME_FORMAT;
-    case 'datetime-seconds':
-      return INPUT_DATE_TIME_SECONDS_FORMAT;
-    case 'time':
-      return INPUT_TIME_FORMAT;
-    case 'time-seconds':
-      return INPUT_TIME_SECONDS_FORMAT;
-    default:
-      return INPUT_DATE_FORMAT;
-  }
-};
-
 export const getSchemaAndField = (options: SchemaOptions) => {
   const { 
     type, 
@@ -147,11 +107,11 @@ export const getSchemaAndField = (options: SchemaOptions) => {
     fieldLabel, 
     validationLabel, 
     defaultValue, 
-    showIf,
     rows,
     options: fieldOptions,
     min,
-    max
+    max,
+    step
   } = options;
 
   let schema: any;
@@ -213,9 +173,30 @@ export const getSchemaAndField = (options: SchemaOptions) => {
     case 'datetime-seconds':
     case 'time':
     case 'time-seconds': {
-      schema = yup.string().meta({ type });
+      schema = yup.string().meta({ type, min, max: max || MAX_DATE });
+      schema = addDateValidation(
+        schema, 
+        type, 
+        min as string | undefined, 
+        (max || MAX_DATE) as string
+      );
       break;
     }
+    case 'range':
+      let rangeSchema = yup.number().meta({ 
+        type: 'range',
+        step: step,
+        min: min ?? 0,
+        max: max ?? 100
+      });
+      if (typeof min === 'number') {
+        rangeSchema = rangeSchema.min(min);
+      }
+      if (typeof max === 'number') {
+        rangeSchema = rangeSchema.max(max);
+      }
+      schema = rangeSchema;
+      break;
     default:
       throw new Error(`Unsupported field type: ${type}`);
   }
@@ -225,9 +206,5 @@ export const getSchemaAndField = (options: SchemaOptions) => {
   schema = addValidationLabel(schema, validationLabel);
   schema = addRequired(schema, required, validationLabel);
   
-  if (showIf) {
-    schema = schema.meta({ ...schema.spec?.meta, showIf });
-  }
-
   return schema;
 };

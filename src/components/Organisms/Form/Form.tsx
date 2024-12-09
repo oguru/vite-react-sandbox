@@ -20,12 +20,10 @@ export const Form = ({ schema, onSubmit, initialValues }: FormProps) => {
     handleSubmit,
     control,
     reset,
-    formState: { errors },
-    trigger
+    formState: { errors }
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues,
-    // reValidateMode: 'onChange'
   });
 
   useEffect(() => {
@@ -34,15 +32,8 @@ export const Form = ({ schema, onSubmit, initialValues }: FormProps) => {
     }
   }, [initialValues, reset]);
 
-  const handleFormSubmit = async (data: any) => {
-    const isValid = await trigger();
-    if (isValid) {
-      onSubmit(data);
-    }
-  };
-
   return (
-    <form noValidate onSubmit={handleSubmit(handleFormSubmit)}>
+    <form noValidate onSubmit={handleSubmit(onSubmit)}>
       <FormFields
         schema={schema}
         register={register}

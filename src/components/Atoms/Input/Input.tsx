@@ -6,6 +6,11 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ hasError, className, ...props }, ref) => {
+    const inputProps = {
+        ...props,
+        ...(props.type === 'checkbox' ? { checked: props.checked } : { value: props.value }),
+    };
+      
     return (
       <input
         ref={ref}
@@ -16,7 +21,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           }
           ${className}`
         }
-        {...props}
+        {...inputProps}
       />
     );
   }

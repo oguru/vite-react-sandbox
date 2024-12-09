@@ -3,7 +3,7 @@ import * as yup from 'yup';
 import { Control, UseFormRegister, useFieldArray } from 'react-hook-form';
 
 import { ArrayField } from './ArrayField';
-import { Field } from './Field';
+import { FormControl } from './FormControl';
 import React from 'react';
 
 interface FormFieldsProps {
@@ -17,8 +17,6 @@ interface FormFieldsProps {
 export const FormFields = ({ schema, register, control, errors, prefix = '' }: FormFieldsProps) => {
   const fields = schema.fields || {};
 
-  console.log("FormFields render")
-  
   return (
     <>
       {Object.entries(fields).map(([fieldName, fieldSchema]: [string, any]) => {
@@ -44,6 +42,8 @@ export const FormFields = ({ schema, register, control, errors, prefix = '' }: F
         }
 
         if (fieldSchema instanceof yup.ArraySchema) {
+          console.log('fieldSchema:', fieldSchema)
+          console.log('errors[fieldName]:', errors[fieldName])
           return (
             <ArrayField
               key={fieldName}
@@ -58,7 +58,7 @@ export const FormFields = ({ schema, register, control, errors, prefix = '' }: F
         }
 
         return (
-          <Field
+          <FormControl
             key={fieldName}
             name={fullPath}
             schema={fieldSchema}

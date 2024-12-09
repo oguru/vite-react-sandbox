@@ -3,7 +3,7 @@ import * as yup from 'yup';
 import { Control, UseFormRegister, useFieldArray } from 'react-hook-form';
 import { buildDefaultValues, getTypeDefault } from '../../../utils/schema';
 
-import { Field } from './Field';
+import { FormControl } from './FormControl';
 import { FormFields } from './FormFields';
 
 interface ArrayFieldProps {
@@ -42,6 +42,7 @@ export const ArrayField = ({ name, control, schema, label, errors, register }: A
           ? Object.values(field).filter(val => typeof val === 'string').join('')
           : field;
 
+
         return (
           <div key={field.id} className="array-item">
             {schema instanceof yup.ObjectSchema ? (
@@ -53,7 +54,7 @@ export const ArrayField = ({ name, control, schema, label, errors, register }: A
                 prefix={`${name}.${index}`}
               />
             ) : (
-              <Field
+              <FormControl
                 name={`${name}.${index}`}
                 schema={schema.innerType || schema}
                 control={control}
@@ -71,9 +72,9 @@ export const ArrayField = ({ name, control, schema, label, errors, register }: A
           </div>
         );
       })}
-      {(Array.isArray(errors) ? errors.root?.message : errors?.message) && (
-        <p className="text-sm text-red-500">
-          {Array.isArray(errors) ? errors.root?.message : errors?.message}
+      {(errors?.message || errors?.root?.message) && (
+        <p style={{ color: 'red' }} className="text-sm text-red-500">
+          {errors?.message || errors?.root?.message}
         </p>
       )}
       <button 
